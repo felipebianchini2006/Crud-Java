@@ -1,4 +1,4 @@
-package org.example.common;
+package org.example.library.common;
 
 import java.time.Instant;
 import java.util.List;
