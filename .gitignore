@@ -37,3 +37,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+### Logs ###
+*.log
+
+### Local IDE dirs ###
+/.idea/
+

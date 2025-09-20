@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Produtos</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f6f8fb;
+            color: #2c3e50;
+        }
+        header {
+            background: #1a73e8;
+            color: #fff;
+            padding: 24px 32px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        main {
+            max-width: 960px;
+            margin: 32px auto;
+            padding: 0 16px 48px;
+        }
+        section {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+        section h2 {
+            margin-top: 0;
+            font-size: 22px;
+        }
+        form {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            margin-bottom: 12px;
+        }
+        label {
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            color: #556175;
+        }
+        input, textarea {
+            margin-top: 6px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #c7d0dd;
+            font-size: 15px;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        button {
+            padding: 12px 18px;
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        button:hover {
+            background: #125ec8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e3e9f2;
+            text-align: left;
+            vertical-align: top;
+        }
+        tbody tr:hover {
+            background: #f1f6ff;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .secondary {
+            background: #fff;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+        }
+        #message {
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        #message.success { color: #1e8e3e; }
+        #message.error { color: #d93025; }
+        @media (max-width: 720px) {
+            header, main { padding-left: 16px; padding-right: 16px; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Gerenciador de Produtos</h1>
+    <p>Interface web simples para consumir a API REST.</p>
+</header>
+<main>
+    <section>
+        <h2>Novo produto</h2>
+        <form id="create-form">
+            <label>Nome
+                <input type="text" name="name" maxlength="120" required>
+            </label>
+            <label>Preço
+                <input type="number" name="price" min="0" step="0.01" required>
+            </label>
+            <label>Estoque
+                <input type="number" name="stock" min="0" step="1" required>
+            </label>
+            <label style="grid-column: 1 / -1;">Descrição
+                <textarea name="description" maxlength="500"></textarea>
+            </label>
+            <div class="actions" style="grid-column: 1 / -1;">
+                <button type="submit">Cadastrar</button>
+                <button type="button" class="secondary" id="reset-create">Limpar</button>
+            </div>
+        </form>
+        <div id="message"></div>
+    </section>
+
+    <section>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <h2 style="margin:0;">Produtos cadastrados</h2>
+            <div class="actions">
+                <button type="button" id="refresh">Recarregar lista</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Criado em</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody id="products-body">
+            <tr><td colspan="7">Nenhum produto cadastrado ainda.</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>Editar produto</h2>
+        <form id="update-form">
+            <label>ID
+                <input type="number" name="id" min="1" required>
+            </label>
+            <label>Nome
+                <input type="text" name="name" maxlength="120" required>
+            </label>
+            <label>Preço
+                <input type="number" name="price" min="0" step="0.01" required>
+            </label>
+            <label>Estoque
+                <input type="number" name="stock" min="0" step="1" required>
+            </label>
+            <label style="grid-column: 1 / -1;">Descrição
+                <textarea name="description" maxlength="500"></textarea>
+            </label>
+            <div class="actions" style="grid-column: 1 / -1;">
+                <button type="submit">Atualizar</button>
+                <button type="button" class="secondary" id="reset-update">Limpar</button>
+            </div>
+        </form>
+    </section>
+</main>
+<script>
+    const apiBase = '/api/products';
+    const productsBody = document.getElementById('products-body');
+    const messageBox = document.getElementById('message');
+
+    function showMessage(text, type = 'success') {
+        messageBox.textContent = text;
+        messageBox.className = type ? type : '';
+        if (text) {
+            setTimeout(() => {
+                messageBox.textContent = '';
+                messageBox.className = '';
+            }, 4000);
+        }
+    }
+
+    function formatCurrency(value) {
+        return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function formatInstant(instant) {
+        if (!instant) return '-';
+        const date = new Date(instant);
+        return date.toLocaleString('pt-BR');
+    }
+
+    function renderProducts(products) {
+        if (!products.length) {
+            productsBody.innerHTML = '<tr><td colspan="7">Nenhum produto cadastrado ainda.</td></tr>';
+            return;
+        }
+        productsBody.innerHTML = '';
+        products.forEach(product => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.description ?? '-'}</td>
+                <td>${formatCurrency(product.price)}</td>
+                <td>${product.stock}</td>
+                <td>${formatInstant(product.createdAt)}</td>
+                <td class="actions">
+                    <button type="button" data-action="edit" data-id="${product.id}">Editar</button>
+                    <button type="button" class="secondary" data-action="delete" data-id="${product.id}">Excluir</button>
+                </td>`;
+            productsBody.appendChild(tr);
+        });
+    }
+
+    async function fetchProducts() {
+        try {
+            const response = await fetch(apiBase);
+            if (!response.ok) throw new Error('Erro ao buscar produtos');
+            const data = await response.json();
+            renderProducts(data);
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message, 'error');
+        }
+    }
+
+    function getFormValues(form) {
+        const formData = new FormData(form);
+        return Object.fromEntries(formData.entries());
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const values = getFormValues(event.target);
+        values.price = Number(values.price);
+        values.stock = Number(values.stock);
+        try {
+            const response = await fetch(apiBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(values)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erro ao criar produto');
+            }
+            event.target.reset();
+            showMessage('Produto cadastrado com sucesso!');
+            await fetchProducts();
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message, 'error');
+        }
+    });
+
+    document.getElementById('update-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const values = getFormValues(event.target);
+        const id = values.id;
+        if (!id) {
+            showMessage('Informe o ID do produto para atualizar.', 'error');
+            return;
+        }
+        const payload = {
+            name: values.name,
+            description: values.description,
+            price: Number(values.price),
+            stock: Number(values.stock)
+        };
+        try {
+            const response = await fetch(`${apiBase}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Erro ao atualizar produto');
+            }
+            showMessage('Produto atualizado com sucesso!');
+            await fetchProducts();
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message, 'error');
+        }
+    });
+
+    productsBody.addEventListener('click', async (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const id = button.dataset.id;
+        if (button.dataset.action === 'delete') {
+            if (!confirm(`Confirma excluir o produto ${id}?`)) return;
+            try {
+                const response = await fetch(`${apiBase}/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Erro ao excluir produto');
+                showMessage('Produto excluído.');
+                await fetchProducts();
+            } catch (error) {
+                console.error(error);
+                showMessage(error.message, 'error');
+            }
+        }
+        if (button.dataset.action === 'edit') {
+            try {
+                const response = await fetch(`${apiBase}/${id}`);
+                if (!response.ok) throw new Error('Produto não encontrado');
+                const product = await response.json();
+                const form = document.getElementById('update-form');
+                form.id.value = product.id;
+                form.name.value = product.name;
+                form.description.value = product.description ?? '';
+                form.price.value = product.price;
+                form.stock.value = product.stock;
+                showMessage('Produto carregado para edição.', 'success');
+                window.scrollTo({ top: form.offsetTop - 20, behavior: 'smooth' });
+            } catch (error) {
+                console.error(error);
+                showMessage(error.message, 'error');
+            }
+        }
+    });
+
+    document.getElementById('refresh').addEventListener('click', fetchProducts);
+    document.getElementById('reset-create').addEventListener('click', () => {
+        document.getElementById('create-form').reset();
+    });
+    document.getElementById('reset-update').addEventListener('click', () => {
+        document.getElementById('update-form').reset();
+    });
+
+    fetchProducts();
+</script>
+</body>
+</html>
