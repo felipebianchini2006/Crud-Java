@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Livros - Biblioteca Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .book-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .book-cover {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+        }
+        
+        .book-info {
+            padding: 1.5rem;
+        }
+        
+        .book-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            line-height: 1.3;
+        }
+        
+        .book-author {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .book-genre {
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .availability-badge {
+            font-size: 0.8rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+        }
+        
+        .search-filters {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .pagination-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a73e8, #4f8ef7);
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1557b0, #3d7ae4);
+            transform: translateY(-1px);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1a73e8, #4f8ef7);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-book-open me-2"></i>
+                Biblioteca Online
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/books">
+                            <i class="fas fa-book me-1"></i>Catálogo
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <div sec:authorize="!isAuthenticated()">
+                        <li class="nav-item me-2">
+                            <a class="btn btn-outline-light" href="/login">
+                                <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-light text-primary" href="/register">
+                                <i class="fas fa-user-plus me-1"></i>Cadastrar
+                            </a>
+                        </li>
+                    </div>
+                    
+                    <div sec:authorize="isAuthenticated()">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <img th:src="${#authentication.principal.user.profileImage != null ? #authentication.principal.user.profileImage : '/static/images/default-avatar.png'}" 
+                                     alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                <span th:text="${#authentication.principal.user.name}">Usuário</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/profile">
+                                    <i class="fas fa-user me-2"></i>Meu Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="/dashboard">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post" class="d-inline">
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h1 class="display-6 fw-bold text-dark">
+                    <i class="fas fa-book me-3"></i>
+                    Catálogo de Livros
+                </h1>
+                <p class="lead text-muted">
+                    Explore nossa coleção com <span th:text="${totalElements}">0</span> livros disponíveis
+                </p>
+            </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="search-filters">
+            <form method="get" th:action="@{/books}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">
+                            <i class="fas fa-search me-1"></i>
+                            Buscar
+                        </label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               th:value="${search}" placeholder="Título, autor...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="genre" class="form-label">
+                            <i class="fas fa-tags me-1"></i>
+                            Gênero
+                        </label>
+                        <select class="form-select" id="genre" name="genre">
+                            <option value="">Todos os gêneros</option>
+                            <option th:each="g : ${genres}" 
+                                    th:value="${g}" 
+                                    th:text="${g}"
+                                    th:selected="${g == genre}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="author" class="form-label">
+                            <i class="fas fa-user-edit me-1"></i>
+                            Autor
+                        </label>
+                        <select class="form-select" id="author" name="author">
+                            <option value="">Todos os autores</option>
+                            <option th:each="a : ${authors}" 
+                                    th:value="${a}" 
+                                    th:text="${a}"
+                                    th:selected="${a == author}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-3" th:if="${search != null or genre != null or author != null}">
+                    <a href="/books" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-times me-1"></i>
+                        Limpar Filtros
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Books Grid -->
+        <div class="row g-4" th:if="${books.hasContent()}">
+            <div class="col-lg-3 col-md-4 col-sm-6" th:each="book : ${books.content}">
+                <div class="card book-card h-100">
+                    <img th:src="${book.coverImage != null ? book.coverImage : '/static/images/default-book-cover.jpg'}" 
+                         class="book-cover" th:alt="${book.title}">
+                    
+                    <div class="book-info">
+                        <h5 class="book-title" th:text="${book.title}">Título do Livro</h5>
+                        <p class="book-author">
+                            <i class="fas fa-user-edit me-1"></i>
+                            <span th:text="${book.author}">Autor</span>
+                        </p>
+                        
+                        <p class="book-genre" th:if="${book.genre != null}">
+                            <span class="badge bg-light text-dark">
+                                <i class="fas fa-tag me-1"></i>
+                                <span th:text="${book.genre}">Gênero</span>
+                            </span>
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="availability-badge" 
+                                  th:classappend="${book.available ? 'bg-success text-white' : 'bg-danger text-white'}"
+                                  th:text="${book.available ? 'Disponível' : 'Emprestado'}">
+                                Status
+                            </span>
+                            
+                            <a th:href="@{/books/{id}(id=${book.id})}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>
+                                Ver Detalhes
+                            </a>
+                        </div>
+                        
+                        <div class="mt-2" sec:authorize="isAuthenticated()" th:if="${canBorrow and book.available}">
+                            <button class="btn btn-success btn-sm w-100" onclick="borrowBook([[${book.id}]])">
+                                <i class="fas fa-book-reader me-1"></i>
+                                Emprestar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Results -->
+        <div class="text-center py-5" th:unless="${books.hasContent()}">
+            <i class="fas fa-search fa-4x text-muted mb-3"></i>
+            <h3 class="text-muted">Nenhum livro encontrado</h3>
+            <p class="text-muted">Tente ajustar os filtros de busca</p>
+            <a href="/books" class="btn btn-primary">
+                <i class="fas fa-refresh me-1"></i>
+                Ver Todos os Livros
+            </a>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container" th:if="${books.hasContent() and books.totalPages > 1}">
+            <nav aria-label="Navegação de páginas">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item" th:classappend="${books.first ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/books(page=${currentPage - 1}, search=${search}, genre=${genre}, author=${author})}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    <li class="page-item" th:each="i : ${#numbers.sequence(0, books.totalPages - 1)}"
+                        th:classappend="${i == currentPage ? 'active' : ''}">
+                        <a class="page-link" th:href="@{/books(page=${i}, search=${search}, genre=${genre}, author=${author})}"
+                           th:text="${i + 1}">1</a>
+                    </li>
+                    
+                    <li class="page-item" th:classappend="${books.last ? 'disabled' : ''}">
+                        <a class="page-link" th:href="@{/books(page=${currentPage + 1}, search=${search}, genre=${genre}, author=${author})}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    Página <span th:text="${currentPage + 1}">1</span> de <span th:text="${books.totalPages}">1</span>
+                    (<span th:text="${totalElements}">0</span> livros no total)
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function borrowBook(bookId) {
+            if (confirm('Deseja emprestar este livro?')) {
+                // TODO: Implement loan functionality
+                alert('Funcionalidade de empréstimo será implementada em breve!');
+            }
+        }
+    </script>
+</body>
+</html>

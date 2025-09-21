@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' - Biblioteca Online'">Biblioteca Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #4f8ef7;
+            --success-color: #1e8e3e;
+            --danger-color: #e53935;
+            --warning-color: #f57c00;
+            --info-color: #0288d1;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1557b0, #3d7ae4);
+            transform: translateY(-1px);
+        }
+        
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .book-cover {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-book-open me-2"></i>
+                Biblioteca Online
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="fas fa-home me-1"></i>Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/books">
+                            <i class="fas fa-book me-1"></i>Livros
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <div sec:authorize="!isAuthenticated()">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">
+                                <i class="fas fa-sign-in-alt me-1"></i>Entrar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">
+                                <i class="fas fa-user-plus me-1"></i>Cadastrar
+                            </a>
+                        </li>
+                    </div>
+                    
+                    <div sec:authorize="isAuthenticated()">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <img th:src="${#authentication.principal.user.profileImage != null ? #authentication.principal.user.profileImage : '/static/images/default-avatar.png'}" 
+                                     alt="Profile" class="profile-img me-2">
+                                <span th:text="${#authentication.principal.user.name}">Usuário</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/profile">
+                                    <i class="fas fa-user me-2"></i>Meu Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="/dashboard">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post" class="d-inline">
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main th:fragment="content">
+        <!-- Content will be replaced by specific pages -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 Biblioteca Online. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:fragment="scripts">
+        <!-- Additional scripts will be added by specific pages -->
+    </script>
+</body>
+</html>

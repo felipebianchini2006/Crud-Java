@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Livro - Biblioteca Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a73e8, #4f8ef7);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1557b0, #3d7ae4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26, 115, 232, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-book-open me-2"></i>
+                Biblioteca Online
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/author/dashboard">
+                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="/author/books">
+                    <i class="fas fa-book me-1"></i>Meus Livros
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="form-container">
+                    <div class="text-center mb-4">
+                        <h2 class="text-primary">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Publicar Novo Livro
+                        </h2>
+                        <p class="text-muted">Compartilhe sua obra com os leitores</p>
+                    </div>
+
+                    <!-- Success/Error Messages -->
+                    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <span th:text="${success}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    
+                    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span th:text="${error}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <form th:action="@{/author/books}" method="post">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label">
+                                    <i class="fas fa-book me-1"></i>
+                                    Título *
+                                </label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       placeholder="Digite o título do livro" required maxlength="200">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="author" class="form-label">
+                                    <i class="fas fa-user-edit me-1"></i>
+                                    Autor *
+                                </label>
+                                <input type="text" class="form-control" id="author" name="author" 
+                                       placeholder="Seu nome como autor" required maxlength="120">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="genre" class="form-label">
+                                <i class="fas fa-tag me-1"></i>
+                                Gênero
+                            </label>
+                            <input type="text" class="form-control" id="genre" name="genre" 
+                                   placeholder="Ex: Ficção, Romance, Suspense..." maxlength="80">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>
+                                Descrição
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="5" 
+                                      placeholder="Descreva seu livro, conte sobre a história, personagens principais..." maxlength="1000"></textarea>
+                            <div class="form-text">Máximo 1000 caracteres</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="/author/books" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                Publicar Livro
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="text-primary mb-2">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Dicas para uma boa publicação:
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>Escolha um título atrativo e descritivo</li>
+                            <li>Escreva uma descrição envolvente que desperte curiosidade</li>
+                            <li>Defina o gênero corretamente para facilitar a busca</li>
+                            <li>Após publicar, você poderá adicionar uma capa personalizada</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Character counter for description
+        const descriptionTextarea = document.getElementById('description');
+        const maxLength = 1000;
+        
+        descriptionTextarea.addEventListener('input', function() {
+            const remaining = maxLength - this.value.length;
+            const formText = this.nextElementSibling;
+            formText.textContent = `${remaining} caracteres restantes`;
+            
+            if (remaining < 100) {
+                formText.classList.add('text-warning');
+            } else {
+                formText.classList.remove('text-warning');
+            }
+            
+            if (remaining < 0) {
+                formText.classList.add('text-danger');
+                formText.classList.remove('text-warning');
+            } else {
+                formText.classList.remove('text-danger');
+            }
+        });
+    </script>
+</body>
+</html>

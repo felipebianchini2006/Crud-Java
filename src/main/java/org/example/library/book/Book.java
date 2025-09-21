@@ -1,10 +1,8 @@
 package org.example.library.book;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.example.library.user.User;
+import java.time.LocalDateTime;
 
 @Entity
 public class Book {
@@ -21,6 +19,19 @@ public class Book {
 
     @Column(length = 80)
     private String genre;
+
+    @Column(length = 1000)
+    private String description;
+
+    @Column(name = "cover_image")
+    private String coverImage;
+
+    @Column(name = "publication_date")
+    private LocalDateTime publicationDate = LocalDateTime.now();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_user_id")
+    private User authorUser;
 
     @Column(nullable = false)
     private boolean available = true;
@@ -68,5 +79,37 @@ public class Book {
 
     public void setAvailable(boolean available) {
         this.available = available;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCoverImage() {
+        return coverImage;
+    }
+
+    public void setCoverImage(String coverImage) {
+        this.coverImage = coverImage;
+    }
+
+    public LocalDateTime getPublicationDate() {
+        return publicationDate;
+    }
+
+    public void setPublicationDate(LocalDateTime publicationDate) {
+        this.publicationDate = publicationDate;
+    }
+
+    public User getAuthorUser() {
+        return authorUser;
+    }
+
+    public void setAuthorUser(User authorUser) {
+        this.authorUser = authorUser;
     }
 }

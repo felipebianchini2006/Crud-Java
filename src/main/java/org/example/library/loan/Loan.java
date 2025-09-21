@@ -9,7 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDate;
 import org.example.library.book.Book;
-import org.example.library.reader.Reader;
+import org.example.library.user.User;
 
 @Entity
 public class Loan {
@@ -23,8 +23,8 @@ public class Loan {
     private Book book;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "reader_id")
-    private Reader reader;
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(nullable = false)
     private LocalDate loanDate;
@@ -37,9 +37,9 @@ public class Loan {
     public Loan() {
     }
 
-    public Loan(Book book, Reader reader, LocalDate loanDate, LocalDate dueDate) {
+    public Loan(Book book, User user, LocalDate loanDate, LocalDate dueDate) {
         this.book = book;
-        this.reader = reader;
+        this.user = user;
         this.loanDate = loanDate;
         this.dueDate = dueDate;
     }
@@ -56,12 +56,12 @@ public class Loan {
         this.book = book;
     }
 
-    public Reader getReader() {
-        return reader;
+    public User getUser() {
+        return user;
     }
 
-    public void setReader(Reader reader) {
-        this.reader = reader;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public LocalDate getLoanDate() {

@@ -6,8 +6,8 @@ import org.example.library.book.Book;
 import org.example.library.book.BookRepository;
 import org.example.library.common.BusinessException;
 import org.example.library.common.ResourceNotFoundException;
-import org.example.library.reader.Reader;
-import org.example.library.reader.ReaderRepository;
+import org.example.library.user.User;
+import org.example.library.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +16,12 @@ public class LoanService {
 
     private final LoanRepository loanRepository;
     private final BookRepository bookRepository;
-    private final ReaderRepository readerRepository;
+    private final UserRepository userRepository;
 
-    public LoanService(LoanRepository loanRepository, BookRepository bookRepository, ReaderRepository readerRepository) {
+    public LoanService(LoanRepository loanRepository, BookRepository bookRepository, UserRepository userRepository) {
         this.loanRepository = loanRepository;
         this.bookRepository = bookRepository;
-        this.readerRepository = readerRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -31,8 +31,8 @@ public class LoanService {
         if (!book.isAvailable()) {
             throw new BusinessException("Livro não está disponível para empréstimo.");
         }
-        Reader reader = readerRepository.findById(request.readerId())
-                .orElseThrow(() -> new ResourceNotFoundException("Leitor", request.readerId()));
+        User user = userRepository.findById(request.readerId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário", request.readerId()));
         if (request.dueDate().isBefore(request.loanDate())) {
             throw new BusinessException("Data de devolução deve ser posterior ou igual à data de empréstimo.");
         }
@@ -41,7 +41,7 @@ public class LoanService {
                     throw new BusinessException("Este livro já está emprestado.");
                 });
         LocalDate loanDate = request.loanDate();
-        Loan loan = new Loan(book, reader, loanDate, request.dueDate());
+        Loan loan = new Loan(book, user, loanDate, request.dueDate());
         book.setAvailable(false);
         return LoanResponse.from(loanRepository.save(loan));
     }
@@ -61,8 +61,15 @@ public class LoanService {
     }
 
     @Transactional(readOnly = true)
-    public List<LoanResponse> findByReader(Long readerId) {
-        return loanRepository.findByReaderId(readerId).stream()
+    public List<LoanResponse> findByUser(Long userId) {
+        return loanRepository.findByUserId(userId).stream()
+                .map(LoanResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<LoanResponse> findByBook(Long bookId) {
+        return loanRepository.findByBookId(bookId).stream()
                 .map(LoanResponse::from)
                 .toList();
     }

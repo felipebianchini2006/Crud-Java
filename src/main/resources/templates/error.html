@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro - Biblioteca Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                        <h2 class="card-title text-danger">Oops! Algo deu errado</h2>
+                        
+                        <div class="alert alert-danger mt-4" th:if="${status}">
+                            <strong>Código do Erro:</strong> <span th:text="${status}"></span>
+                        </div>
+                        
+                        <div class="alert alert-info" th:if="${requestUri}">
+                            <strong>URL:</strong> <span th:text="${requestUri}"></span>
+                        </div>
+                        
+                        <div class="alert alert-warning" th:if="${message}">
+                            <strong>Mensagem:</strong> <span th:text="${message}"></span>
+                        </div>
+                        
+                        <div class="alert alert-secondary" th:if="${exception}">
+                            <strong>Detalhes técnicos:</strong>
+                            <pre th:text="${exception}" class="text-start mt-2"></pre>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="/" class="btn btn-primary me-2">
+                                <i class="fas fa-home me-1"></i>
+                                Voltar ao Início
+                            </a>
+                            <button onclick="history.back()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Voltar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

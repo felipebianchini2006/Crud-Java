@@ -39,9 +39,9 @@ public class LoanController {
         return service.findById(id);
     }
 
-    @GetMapping("/reader/{readerId}")
-    public List<LoanResponse> findByReader(@PathVariable Long readerId) {
-        return service.findByReader(readerId);
+    @GetMapping("/user/{userId}")
+    public List<LoanResponse> findByUser(@PathVariable Long userId) {
+        return service.findByUser(userId);
     }
 
     @PatchMapping("/{id}/return")

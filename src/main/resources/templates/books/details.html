@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${book.title} + ' - Biblioteca Online'">Detalhes do Livro - Biblioteca Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .book-details-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+        
+        .book-cover-large {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+        }
+        
+        .book-info-section {
+            padding: 2.5rem;
+        }
+        
+        .book-title-large {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        
+        .book-author-large {
+            font-size: 1.3rem;
+            color: #7f8c8d;
+            margin-bottom: 1.5rem;
+        }
+        
+        .book-meta {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+        
+        .meta-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .meta-value {
+            color: #6c757d;
+        }
+        
+        .availability-status {
+            font-size: 1.1rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-action {
+            padding: 0.8rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1a73e8, #4f8ef7);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1557b0, #3d7ae4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26, 115, 232, 0.3);
+        }
+        
+        .author-info {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .author-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+        }
+        
+        .breadcrumb {
+            background: rgba(255,255,255,0.9);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .description-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .book-title-large {
+                font-size: 2rem;
+            }
+            
+            .book-info-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1a73e8, #4f8ef7);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-book-open me-2"></i>
+                Biblioteca Online
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/books">
+                    <i class="fas fa-arrow-left me-1"></i>Voltar ao Catálogo
+                </a>
+                <div sec:authorize="isAuthenticated()">
+                    <a class="nav-link" href="/dashboard">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mt-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Início</a></li>
+                <li class="breadcrumb-item"><a href="/books">Catálogo</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${book.title}">Livro</li>
+            </ol>
+        </nav>
+
+        <!-- Book Details -->
+        <div class="book-details-container">
+            <div class="row g-0">
+                <!-- Book Cover -->
+                <div class="col-lg-5">
+                    <img th:src="${book.coverImage != null ? book.coverImage : '/static/images/default-book-cover.jpg'}" 
+                         class="book-cover-large" th:alt="${book.title}">
+                </div>
+                
+                <!-- Book Information -->
+                <div class="col-lg-7">
+                    <div class="book-info-section">
+                        <h1 class="book-title-large" th:text="${book.title}">Título do Livro</h1>
+                        <p class="book-author-large">
+                            <i class="fas fa-user-edit me-2"></i>
+                            <span th:text="${book.author}">Nome do Autor</span>
+                        </p>
+                        
+                        <!-- Availability Status -->
+                        <div class="mb-4">
+                            <span class="availability-status" 
+                                  th:classappend="${book.available ? 'bg-success text-white' : 'bg-danger text-white'}">
+                                <i th:class="${book.available ? 'fas fa-check-circle' : 'fas fa-times-circle'}"></i>
+                                <span th:text="${book.available ? 'Disponível para empréstimo' : 'Atualmente emprestado'}">Status</span>
+                            </span>
+                        </div>
+                        
+                        <!-- Book Metadata -->
+                        <div class="book-meta">
+                            <div class="meta-item" th:if="${book.genre != null}">
+                                <span class="meta-label">
+                                    <i class="fas fa-tag me-2"></i>Gênero
+                                </span>
+                                <span class="meta-value" th:text="${book.genre}">Gênero</span>
+                            </div>
+                            
+                            <div class="meta-item" th:if="${book.publicationDate != null}">
+                                <span class="meta-label">
+                                    <i class="fas fa-calendar me-2"></i>Data de Publicação
+                                </span>
+                                <span class="meta-value" th:text="${#temporals.format(book.publicationDate, 'dd/MM/yyyy')}">Data</span>
+                            </div>
+                            
+                            <div class="meta-item">
+                                <span class="meta-label">
+                                    <i class="fas fa-hashtag me-2"></i>ID do Livro
+                                </span>
+                                <span class="meta-value" th:text="${book.id}">ID</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3 flex-wrap">
+                            <!-- Borrow Button for Readers -->
+                            <div sec:authorize="isAuthenticated()" th:if="${canBorrow and book.available}">
+                                <button class="btn btn-success btn-action" onclick="borrowBook([[${book.id}]])">
+                                    <i class="fas fa-book-reader me-2"></i>
+                                    Emprestar Livro
+                                </button>
+                            </div>
+                            
+                            <!-- Edit Button for Authors/Admins -->
+                            <div sec:authorize="isAuthenticated()" th:if="${isOwner}">
+                                <a th:href="@{/author/books/{id}/edit(id=${book.id})}" class="btn btn-primary btn-action">
+                                    <i class="fas fa-edit me-2"></i>
+                                    Editar Livro
+                                </a>
+                            </div>
+                            
+                            <!-- Login Prompt for Guests -->
+                            <div sec:authorize="!isAuthenticated()">
+                                <a href="/login" class="btn btn-primary btn-action">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Faça login para emprestar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Description Section -->
+        <div class="description-section" th:if="${book.description != null and !book.description.isEmpty()}">
+            <h3 class="mb-3">
+                <i class="fas fa-align-left me-2"></i>
+                Descrição
+            </h3>
+            <p class="lead" th:text="${book.description}">Descrição do livro...</p>
+        </div>
+        
+        <!-- Author Information -->
+        <div class="author-info" th:if="${book.authorUser != null}">
+            <h4 class="mb-3">
+                <i class="fas fa-user-circle me-2"></i>
+                Sobre o Autor
+            </h4>
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img th:src="${book.authorUser.profileImage != null ? book.authorUser.profileImage : '/static/images/default-avatar.png'}" 
+                         class="author-avatar" th:alt="${book.authorUser.name}">
+                </div>
+                <div class="col">
+                    <h5 class="mb-1" th:text="${book.authorUser.name}">Nome do Autor</h5>
+                    <p class="mb-0 opacity-75" th:if="${book.authorUser.bio != null}" th:text="${book.authorUser.bio}">
+                        Biografia do autor...
+                    </p>
+                    <p class="mb-0 opacity-75" th:unless="${book.authorUser.bio != null}">
+                        Autor registrado na plataforma
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Related Books Section -->
+        <div class="mt-5 mb-4">
+            <h3 class="mb-4">
+                <i class="fas fa-books me-2"></i>
+                Outros livros que você pode gostar
+            </h3>
+            <div class="row g-3">
+                <!-- This would be populated with related books -->
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-search fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Explore mais livros</p>
+                            <a href="/books" class="btn btn-outline-primary btn-sm mt-2">
+                                Ver Catálogo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function borrowBook(bookId) {
+            if (confirm('Deseja emprestar este livro?')) {
+                // TODO: Implement loan functionality
+                fetch(`/api/loans`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        bookId: bookId,
+                        loanDate: new Date().toISOString().split('T')[0],
+                        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 14 days from now
+                    })
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Livro emprestado com sucesso!');
+                        location.reload();
+                    } else {
+                        return response.json().then(error => {
+                            throw new Error(error.message || 'Erro ao emprestar livro');
+                        });
+                    }
+                })
+                .catch(error => {
+                    alert('Erro: ' + error.message);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
