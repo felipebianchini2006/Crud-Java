@@ -202,7 +202,7 @@
                     <div class="stats-icon bg-primary mx-auto">
                         <i class="fas fa-book-reader"></i>
                     </div>
-                    <div class="stats-number" th:text="${activeLoans.size()}">0</div>
+                    <div class="stats-number" th:text="${activeLoans != null ? activeLoans.size() : 0}">0</div>
                     <div class="stats-label">Empréstimos Ativos</div>
                 </div>
             </div>
@@ -211,7 +211,7 @@
                     <div class="stats-icon bg-success mx-auto">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="stats-number" th:text="${#lists.size(#lists.select(activeLoans, loan -> loan.returned == false))}">0</div>
+                    <div class="stats-number" th:text="${activeLoans != null ? activeLoans.size() : 0}">0</div>
                     <div class="stats-label">Livros Pendentes</div>
                 </div>
             </div>
@@ -229,8 +229,8 @@
                     <div class="stats-icon bg-info mx-auto">
                         <i class="fas fa-history"></i>
                     </div>
-                    <div class="stats-number" th:text="${#lists.size(#lists.select(activeLoans, loan -> loan.returned == true))}">0</div>
-                    <div class="stats-label">Livros Devolvidos</div>
+                    <div class="stats-number">0</div>
+                    <div class="stats-label">Total Histórico</div>
                 </div>
             </div>
         </div>
@@ -244,42 +244,50 @@
                         Meus Empréstimos Ativos
                     </h3>
                     
-                    <div th:if="${activeLoans.empty}" class="text-center py-4">
+                    <div th:if="${activeLoans == null or activeLoans.empty}" class="text-center py-4">
                         <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">Nenhum empréstimo ativo</h5>
-                        <p class="text-muted">Que tal explorar nosso catálogo e encontrar um livro interessante?</p>
+                        <p class="text-muted">Explore nosso catálogo e faça seu primeiro empréstimo!</p>
                         <a href="/books" class="btn btn-primary">
                             <i class="fas fa-search me-2"></i>
-                            Explorar Catálogo
+                            Explorar Livros
                         </a>
                     </div>
                     
-                    <div th:unless="${activeLoans.empty}">
-                        <div class="book-card-small" th:each="loan : ${activeLoans}">
-                            <div class="row align-items-center">
-                                <div class="col-auto">
-                                    <img src="/static/images/default-book-cover.jpg" 
-                                         class="book-cover-small" alt="Capa do livro">
-                                </div>
-                                <div class="col">
-                                    <h6 class="mb-1" th:text="${loan.bookTitle}">Título do Livro</h6>
-                                    <p class="text-muted small mb-1">
-                                        <i class="fas fa-calendar me-1"></i>
-                                        Emprestado em: <span th:text="${#temporals.format(loan.loanDate, 'dd/MM/yyyy')}">Data</span>
-                                    </p>
-                                    <p class="text-muted small mb-0">
-                                        <i class="fas fa-clock me-1"></i>
-                                        Devolução: <span th:text="${#temporals.format(loan.dueDate, 'dd/MM/yyyy')}">Data</span>
-                                    </p>
-                                </div>
-                                <div class="col-auto">
-                                    <span class="loan-status" 
-                                          th:classappend="${loan.returned ? 'bg-success text-white' : 'bg-warning text-dark'}"
-                                          th:text="${loan.returned ? 'Devolvido' : 'Ativo'}">
-                                        Status
-                                    </span>
+                    <div th:if="${activeLoans != null and !activeLoans.empty}">
+                        <div class="row g-3">
+                            <div class="col-md-6" th:each="loan : ${#lists.take(activeLoans, 4)}">
+                                <div class="loan-item p-3 border rounded">
+                                    <div class="d-flex">
+                                        <div class="loan-book-cover me-3">
+                                            <i class="fas fa-book fa-2x text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1" th:text="${loan.bookTitle()}">Título do Livro</h6>
+                                            <p class="text-muted small mb-1">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                Emprestado em: <span th:text="${#temporals.format(loan.loanDate(), 'dd/MM/yyyy')}">01/01/2024</span>
+                                            </p>
+                                            <p class="text-muted small mb-2">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Vence em: <span th:text="${#temporals.format(loan.dueDate(), 'dd/MM/yyyy')}">15/01/2024</span>
+                                            </p>
+                                            <form th:action="@{/loans/return/{id}(id=${loan.id()})}" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Confirmar devolução?')">
+                                                    <i class="fas fa-undo me-1"></i>Devolver
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                        
+                        <div class="text-center mt-3" th:if="${activeLoans.size() > 4}">
+                            <a href="/loans/my-loans" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>
+                                Ver Todos os Empréstimos
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -354,16 +362,16 @@
                 <p class="small mb-0">Atualize suas informações</p>
             </a>
             
-            <a href="/reader/history" class="action-card">
+            <a href="/loans/my-loans" class="action-card">
                 <i class="fas fa-history fa-2x mb-2"></i>
-                <h6>Histórico</h6>
-                <p class="small mb-0">Veja seus empréstimos anteriores</p>
+                <h6>Meus Empréstimos</h6>
+                <p class="small mb-0">Veja todos os seus empréstimos</p>
             </a>
             
-            <a href="/reader/recommendations" class="action-card">
+            <a href="/books?available=true" class="action-card">
                 <i class="fas fa-thumbs-up fa-2x mb-2"></i>
-                <h6>Recomendações</h6>
-                <p class="small mb-0">Livros sugeridos para você</p>
+                <h6>Livros Disponíveis</h6>
+                <p class="small mb-0">Livros prontos para empréstimo</p>
             </a>
         </div>
     </div>

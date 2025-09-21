@@ -141,6 +141,10 @@ public class BookService {
 
         // Generate unique filename
         String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            throw new IOException("Arquivo inválido");
+        }
+        
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String filename = UUID.randomUUID().toString() + extension;
         Path filePath = uploadPath.resolve(filename);
@@ -148,8 +152,8 @@ public class BookService {
         // Save file
         Files.copy(file.getInputStream(), filePath);
 
-        // Update book cover image
-        book.setCoverImage("/static/covers/" + filename);
+        // Update book cover image - corrigir o caminho
+        book.setCoverImage("/uploads/covers/" + filename);
         repository.save(book);
 
         return book.getCoverImage();

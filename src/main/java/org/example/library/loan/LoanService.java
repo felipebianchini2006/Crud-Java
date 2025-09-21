@@ -93,9 +93,20 @@ public class LoanService {
     public void delete(Long id) {
         Loan loan = loanRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Empréstimo", id));
-        if (!loan.isReturned()) {
-            loan.getBook().setAvailable(true);
-        }
         loanRepository.delete(loan);
+    }
+
+    @Transactional
+    public void returnLoan(Long loanId) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() -> new ResourceNotFoundException("Empréstimo", loanId));
+        
+        if (loan.isReturned()) {
+            throw new BusinessException("Empréstimo já devolvido.");
+        }
+        
+        loan.setReturnDate(LocalDate.now());
+        loan.getBook().setAvailable(true);
+        loanRepository.save(loan);
     }
 }

@@ -43,3 +43,7 @@ build/
 ### Local IDE dirs ###
 /.idea/
 
+### Upload directories ###
+uploads/
+/uploads/
+**/uploads/

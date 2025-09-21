@@ -203,10 +203,18 @@ public class AuthorController {
                 return "redirect:/author/books/" + id;
             }
             
+            // Validate file size (max 5MB)
+            if (file.getSize() > 5 * 1024 * 1024) {
+                redirectAttributes.addFlashAttribute("error", "A imagem deve ter no máximo 5MB.");
+                return "redirect:/author/books/" + id;
+            }
+            
             bookService.uploadCoverImage(id, file);
             redirectAttributes.addFlashAttribute("success", "Capa do livro atualizada com sucesso!");
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("error", "Erro ao fazer upload da imagem: " + e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Erro inesperado: " + e.getMessage());
         }
         
         return "redirect:/author/books/" + id;
