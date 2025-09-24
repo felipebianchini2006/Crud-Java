@@ -46,7 +46,8 @@ public class LoanWebController {
             LocalDate loanDate = LocalDate.now();
             LocalDate dueDate = loanDate.plusDays(14);
             
-            LoanRequest loanRequest = new LoanRequest(user.getId(), bookId, loanDate, dueDate);
+            // Ordem correta dos parâmetros: bookId, readerId, loanDate, dueDate
+            LoanRequest loanRequest = new LoanRequest(bookId, user.getId(), loanDate, dueDate);
             loanService.create(loanRequest);
             
             redirectAttributes.addFlashAttribute("success", "Livro emprestado com sucesso! Devolução até: " + dueDate);

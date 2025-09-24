@@ -166,6 +166,7 @@
                     </div>
                     <div class="card-body">
                         <form th:action="@{/profile/update}" method="post" th:object="${userUpdateRequest}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="name" class="form-label">
@@ -245,6 +246,7 @@
                              alt="Profile" class="profile-image mb-3" id="profilePreview">
                         
                         <form th:action="@{/profile/upload-image}" method="post" enctype="multipart/form-data" id="uploadForm">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                             <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                                 <p class="mb-2">Clique para selecionar uma imagem</p>
