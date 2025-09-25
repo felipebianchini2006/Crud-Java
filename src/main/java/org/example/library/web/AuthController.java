@@ -22,11 +22,7 @@ public class AuthController {
 
     @GetMapping("/")
     public String home(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isLoggedIn = auth != null && auth.isAuthenticated() && 
-                           !auth.getName().equals("anonymousUser");
-        model.addAttribute("isLoggedIn", isLoggedIn);
-        return "index";
+        return "redirect:/app";
     }
 
     @GetMapping("/login")

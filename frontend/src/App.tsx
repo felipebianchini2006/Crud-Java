@@ -1,8 +1,10 @@
-import { Route, Routes, Link, useNavigate } from 'react-router-dom'
+import { Route, Routes, Link } from 'react-router-dom'
 import Home from './pages/Home'
 import BooksList from './pages/BooksList'
 import BookDetails from './pages/BookDetails'
 import MyLoans from './pages/MyLoans'
+import { useEffect, useState } from 'react'
+import { getMe, logout, Me } from './api/me'
 
 export default function App() {
   return (
@@ -22,7 +24,12 @@ export default function App() {
 }
 
 function Navbar() {
-  const navigate = useNavigate()
+  const [me, setMe] = useState<Me | null>(null)
+  useEffect(()=>{ getMe().then(setMe) },[])
+  async function doLogout(){
+    await logout()
+    window.location.href = '/app'
+  }
   return (
     <nav className="navbar">
       <div className="container nav-inner">
@@ -31,11 +38,19 @@ function Navbar() {
         </Link>
         <div className="nav-actions">
           <Link to="/books">Catálogo</Link>
-          <a href="/dashboard" className="btn">Dashboard</a>
-          <a href="/login" className="btn secondary">Entrar</a>
+          {me ? (
+            <>
+              <a href="/dashboard" className="btn">Dashboard</a>
+              <button className="btn secondary" onClick={doLogout}>Sair</button>
+            </>
+          ) : (
+            <>
+              <a href="/login" className="btn secondary">Entrar</a>
+              <a href="/register" className="btn">Cadastrar</a>
+            </>
+          )}
         </div>
       </div>
     </nav>
   )
 }
-

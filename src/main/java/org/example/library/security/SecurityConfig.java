@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .permitAll()
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**") // Disable CSRF for API endpoints
+                .ignoringRequestMatchers("/api/**", "/logout") // Disable CSRF for API endpoints and SPA logout
             );
 
         return http.build();

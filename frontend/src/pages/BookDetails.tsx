@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getBook, Book } from '@/api/books'
-import { borrowViaWebEndpoint } from '@/api/loans'
+import { getMe } from '@/api/me'
+import { api } from '@/api/client'
 import { img } from '@/api/client'
 
 export default function BookDetails(){
@@ -19,9 +20,18 @@ export default function BookDetails(){
     if (!book) return
     if (!confirm('Deseja emprestar este livro por 14 dias?')) return
     try {
-      await borrowViaWebEndpoint(book.id)
-      // Backend pode redirecionar; como fetch não troca a URL, forçamos navegação para o dashboard do leitor
-      window.location.href = '/reader/dashboard'
+      const me = await getMe()
+      if (!me) { window.location.href = '/login'; return }
+      const loanDate = new Date()
+      const dueDate = new Date(); dueDate.setDate(loanDate.getDate()+14)
+      await api.post('/api/loans', {
+        bookId: book.id,
+        readerId: me.id,
+        loanDate: loanDate.toISOString().slice(0,10),
+        dueDate: dueDate.toISOString().slice(0,10)
+      })
+      alert('Livro emprestado com sucesso!')
+      window.location.href = '/app/my-loans'
     } catch (e:any) {
       alert(e.message || 'Erro ao emprestar.')
     }
@@ -55,4 +65,3 @@ export default function BookDetails(){
     </div>
   )
 }
-
