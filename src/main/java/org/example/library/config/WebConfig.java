@@ -2,6 +2,7 @@ package org.example.library.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -22,5 +23,17 @@ public class WebConfig implements WebMvcConfigurer {
         // Serve static resources
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
+
+        // Serve SPA built assets under /app/** from classpath:/static/app/
+        registry.addResourceHandler("/app/**")
+                .addResourceLocations("classpath:/static/app/");
+    }
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        // Forward any /app/* route (not a real file) to SPA index.html
+        registry.addViewController("/app/{spring:\\w+}").setViewName("forward:/static/app/index.html");
+        registry.addViewController("/app/**/{spring:\\w+}").setViewName("forward:/static/app/index.html");
+        registry.addViewController("/app").setViewName("forward:/static/app/index.html");
     }
 }
