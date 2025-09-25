@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Livros - Biblioteca Online</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -99,7 +103,7 @@
             box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
         }
     </style>
-</head>
+ <script src=\https://unpkg.com/htmx.org@1.9.12\ crossorigin=\anonymous\></script>`n <script defer src=https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js></script>`n</head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1a73e8, #4f8ef7);">
@@ -187,7 +191,8 @@
 
         <!-- Search and Filters -->
         <div class="search-filters">
-            <form method="get" th:action="@{/books}">
+            <form method="get" th:action="@{/books}"
+                  hx-get="/books" hx-target="#books-container" hx-select="#books-container" hx-indicator="#books-loading">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="search" class="form-label">
@@ -241,6 +246,7 @@
         </div>
 
         <!-- Books Grid -->
+        <div id="books-container">
         <div class="row g-4" th:if="${books.hasContent()}">
             <div class="col-lg-3 col-md-4 col-sm-6" th:each="book : ${books.content}">
                 <div class="card book-card h-100">
@@ -327,6 +333,7 @@
                 </small>
             </div>
         </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -338,5 +345,11 @@
             }
         }
     </script>
+    <div id="books-loading" class="text-center py-3" style="display:none;" x-data="{ on: false }" x-init="document.body.addEventListener(&#39;htmx:request&#39;,()=>on=true); document.body.addEventListener(&#39;htmx:afterOnLoad&#39;,()=>on=false);" x-show="on">
+        <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div>
+    </div>
 </body>
 </html>
+
+
+
