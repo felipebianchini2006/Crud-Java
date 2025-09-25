@@ -21,7 +21,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**", "/static/**", "/uploads/**").permitAll()
+                .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/images/**", "/static/**", "/uploads/**", "/app/**").permitAll()
                 .requestMatchers("/api/books").permitAll() // Allow viewing books without login
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/author/**").hasAnyRole("AUTHOR", "ADMIN")

@@ -47,3 +47,10 @@ build/
 uploads/
 /uploads/
 **/uploads/
+# SPA build artifacts
+src/main/resources/static/app/
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.DS_Store

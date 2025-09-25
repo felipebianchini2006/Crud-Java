@@ -31,9 +31,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        // Forward any /app/* route (not a real file) to SPA index.html
-        registry.addViewController("/app/{spring:\\w+}").setViewName("forward:/static/app/index.html");
-        registry.addViewController("/app/**/{spring:\\w+}").setViewName("forward:/static/app/index.html");
+        // Forward SPA routes (any path after /app) to SPA index.html
         registry.addViewController("/app").setViewName("forward:/static/app/index.html");
+        registry.addViewController("/app/{*path}").setViewName("forward:/static/app/index.html");
     }
 }
