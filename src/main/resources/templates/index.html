@@ -149,10 +149,25 @@
                     </div>
                     
                     <div sec:authorize="isAuthenticated()">
-                        <li class="nav-item">
-                            <a class="btn btn-primary" href="/dashboard">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <img th:src="${#authentication.principal.user.profileImage != null ? #authentication.principal.user.profileImage : '/static/images/default-avatar.png'}" 
+                                     alt="Profile" style="width:36px;height:36px;border-radius:50%;object-fit:cover" class="me-2">
+                                <span th:text="${#authentication.principal.user.name}">Usuário</span>
                             </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>Meu Perfil</a></li>
+                                <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form th:action="@{/logout}" method="post" class="d-inline">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
                         </li>
                     </div>
                 </ul>

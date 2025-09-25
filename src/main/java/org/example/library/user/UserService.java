@@ -56,7 +56,11 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
         user.setBio(request.getBio());
-        user.setRole(request.getRole() != null ? request.getRole() : UserRole.READER);
+        var requestedRole = request.getRole();
+        if (requestedRole == null || requestedRole == UserRole.ADMIN) {
+            requestedRole = UserRole.READER;
+        }
+        user.setRole(requestedRole);
 
         return userRepository.save(user);
     }

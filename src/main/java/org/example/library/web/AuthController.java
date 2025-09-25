@@ -40,7 +40,7 @@ public class AuthController {
     @GetMapping("/register")
     public String register(Model model) {
         model.addAttribute("userRequest", new UserRequest());
-        model.addAttribute("roles", UserRole.values());
+        model.addAttribute("roles", new UserRole[]{UserRole.READER, UserRole.AUTHOR});
         return "auth/register";
     }
 
@@ -50,17 +50,18 @@ public class AuthController {
                               RedirectAttributes redirectAttributes,
                               Model model) {
         if (result.hasErrors()) {
-            model.addAttribute("roles", UserRole.values());
+            model.addAttribute("roles", new UserRole[]{UserRole.READER, UserRole.AUTHOR});
             return "auth/register";
         }
 
         try {
+            if (userRequest.getRole() == null || userRequest.getRole() == UserRole.ADMIN) { userRequest.setRole(UserRole.READER); }
             userService.create(userRequest);
             redirectAttributes.addFlashAttribute("success", "Conta criada com sucesso! Faça login para continuar.");
             return "redirect:/login";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
-            model.addAttribute("roles", UserRole.values());
+            model.addAttribute("roles", new UserRole[]{UserRole.READER, UserRole.AUTHOR});
             return "auth/register";
         }
     }
@@ -78,3 +79,7 @@ public class AuthController {
         }
     }
 }
+
+
+
+
