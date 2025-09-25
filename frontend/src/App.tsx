@@ -3,6 +3,9 @@ import Home from './pages/Home'
 import BooksList from './pages/BooksList'
 import BookDetails from './pages/BookDetails'
 import MyLoans from './pages/MyLoans'
+import Profile from './pages/Profile'
+import AdminDashboard from './pages/AdminDashboard'
+import AuthorDashboard from './pages/AuthorDashboard'
 import { useEffect, useState } from 'react'
 import { getMe, logout, Me } from './api/me'
 
@@ -16,6 +19,9 @@ export default function App() {
           <Route path="/books" element={<BooksList />} />
           <Route path="/books/:id" element={<BookDetails />} />
           <Route path="/my-loans" element={<MyLoans />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/author" element={<AuthorDashboard />} />
         </Routes>
       </main>
       <footer className="footer">© 2024 Biblioteca Online</footer>
@@ -40,7 +46,9 @@ function Navbar() {
           <Link to="/books">Catálogo</Link>
           {me ? (
             <>
-              <a href="/dashboard" className="btn">Dashboard</a>
+              <Link to="/my-loans" className="btn">Meus Empréstimos</Link>
+              {me.role==='AUTHOR' && <Link to="/author" className="btn secondary">Autor</Link>}
+              {me.role==='ADMIN' && <Link to="/admin" className="btn secondary">Admin</Link>}
               <button className="btn secondary" onClick={doLogout}>Sair</button>
             </>
           ) : (

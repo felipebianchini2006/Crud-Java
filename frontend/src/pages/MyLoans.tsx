@@ -13,7 +13,7 @@ export default function MyLoans(){
       const u = await getMe()
       if (!u) { window.location.href = '/login'; return }
       setMe(u)
-      const { data } = await api.get<LoanResponse[]>(`/api/loans/user/${u.id}`)
+      const { data } = await api.get<LoanResponse[]>(`/api/loans/me`)
       setLoans(data)
       setLoading(false)
     })()
@@ -82,4 +82,3 @@ export default function MyLoans(){
 
 function formatDate(d: string){ if(!d) return '-'; const dt = new Date(d); return dt.toLocaleDateString('pt-BR') }
 function isOverdue(d: string){ return new Date() > new Date(d) }
-

@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
+import org.example.library.security.CustomUserDetailsService;
 
 import java.util.List;
 import java.util.Map;
@@ -56,6 +59,28 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Upload de foto de perfil
+    @PostMapping("/{id}/upload-image")
+    public UserResponse uploadImage(@PathVariable Long id,
+                                    @RequestParam("file") MultipartFile file) throws java.io.IOException {
+        String url = userService.uploadProfileImage(id, file);
+        User user = userService.findById(id);
+        return new UserResponse(user);
+    }
+
+    // Ativar/Desativar usuário (admin)
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<Void> activate(@PathVariable Long id) {
+        userService.activate(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }

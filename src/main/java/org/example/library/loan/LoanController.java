@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.example.library.security.CustomUserDetailsService;
 
 @RestController
 @RequestMapping("/api/loans")
@@ -42,6 +44,13 @@ public class LoanController {
     @GetMapping("/user/{userId}")
     public List<LoanResponse> findByUser(@PathVariable Long userId) {
         return service.findByUser(userId);
+    }
+
+    @GetMapping("/me")
+    public List<LoanResponse> findForCurrentUser(Authentication authentication) {
+        CustomUserDetailsService.CustomUserPrincipal principal =
+                (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+        return service.findByUser(principal.getUser().getId());
     }
 
     @PatchMapping("/{id}/return")

@@ -64,15 +64,7 @@ public class AuthController {
 
     @GetMapping("/dashboard")
     public String dashboard() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            return "redirect:/admin/dashboard";
-        } else if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_AUTHOR"))) {
-            return "redirect:/author/dashboard";
-        } else {
-            return "redirect:/reader/dashboard";
-        }
+        return "redirect:/app";
     }
 }
 

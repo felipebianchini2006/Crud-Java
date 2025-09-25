@@ -14,6 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
+import org.example.library.security.CustomUserDetailsService;
+import org.example.library.user.User;
 
 @RestController
 @RequestMapping("/api/books")
@@ -58,5 +62,22 @@ public class BookController {
     public ResponseEntity<Void> changeAvailability(@PathVariable Long id, @RequestParam boolean available) {
         service.setAvailability(id, available);
         return ResponseEntity.noContent().build();
+    }
+
+    // Upload de capa do livro
+    @PostMapping("/{id}/cover")
+    public BookResponse uploadCover(@PathVariable Long id,
+                                    @RequestParam("file") MultipartFile file) throws java.io.IOException {
+        service.uploadCoverImage(id, file);
+        return service.findByIdResponse(id);
+    }
+
+    // Livros do autor logado
+    @GetMapping("/mine")
+    public List<BookResponse> myBooks(Authentication authentication) {
+        CustomUserDetailsService.CustomUserPrincipal principal =
+                (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+        User user = principal.getUser();
+        return service.findByAuthorUser(user).stream().map(BookResponse::from).toList();
     }
 }
