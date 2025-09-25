@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getBooks, Book } from '@/api/books'
 import { Link, useSearchParams } from 'react-router-dom'
-import { img } from '@/api/client'
+import { api, img } from '@/api/client'
+import { getMe, Me } from '@/api/me'
 
 export default function BooksList(){
   const [params, setParams] = useSearchParams()
   const [all, setAll] = useState<Book[]>([])
   const [loading, setLoading] = useState(true)
+  const [me, setMe] = useState<Me | null>(null)
 
-  useEffect(()=>{ getBooks().then(setAll).finally(()=>setLoading(false)) },[])
+  useEffect(()=>{ 
+    getBooks().then(setAll).finally(()=>setLoading(false))
+    getMe().then(setMe)
+  },[])
 
   const search = params.get('search')?.toLowerCase() || ''
   const genre = params.get('genre')?.toLowerCase() || ''
@@ -88,6 +93,21 @@ export default function BooksList(){
                     <span className={`badge ${b.available ? 'green':'red'}`}>{b.available?'Disponível':'Emprestado'}</span>
                     <Link className="btn" to={`/books/${b.id}`}>Detalhes</Link>
                   </div>
+                  {me && b.available && (
+                    <div className="actions" style={{justifyContent:'flex-end', marginTop:8}}>
+                      <button className="btn secondary" onClick={async ()=>{
+                        const loanDate = new Date()
+                        const dueDate = new Date(); dueDate.setDate(loanDate.getDate()+14)
+                        await api.post('/api/loans', {
+                          bookId: b.id,
+                          readerId: me.id,
+                          loanDate: loanDate.toISOString().slice(0,10),
+                          dueDate: dueDate.toISOString().slice(0,10)
+                        })
+                        alert('Livro emprestado!')
+                      }}>Emprestar</button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -120,4 +140,3 @@ function Pagination({ total, current, onPage }:{ total:number; current:number; o
     </div>
   )
 }
-

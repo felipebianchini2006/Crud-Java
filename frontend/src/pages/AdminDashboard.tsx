@@ -4,11 +4,17 @@ import { api } from '@/api/client'
 
 interface UserRow { id:number; name:string; email:string; role:string; profileImage?:string }
 
+type Book = { id:number; title:string; author:string; genre?:string; available:boolean }
+type Loan = { id:number; bookId:number; bookTitle:string; userName:string; loanDate:string; dueDate:string; returned:boolean }
+
 export default function AdminDashboard(){
   const [me, setMe] = useState<Me|null>(null)
+  const [tab, setTab] = useState<'users'|'books'|'loans'|'reports'>('users')
   const [users, setUsers] = useState<UserRow[]>([])
-  const [books, setBooks] = useState<any[]>([])
-  const [loans, setLoans] = useState<any[]>([])
+  const [books, setBooks] = useState<Book[]>([])
+  const [loans, setLoans] = useState<Loan[]>([])
+  const [editUser, setEditUser] = useState<UserRow|null>(null)
+  const [editBook, setEditBook] = useState<Book|null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(()=>{
@@ -25,16 +31,17 @@ export default function AdminDashboard(){
     })()
   },[])
 
-  async function toggleUser(id:number){
-    // tentativa simples: se existe no array, considerar toggle por /activate ou /deactivate
-    const found = users.find(u=>u.id===id)
-    if (!found) return
-    const active = true // não temos campo active no DTO; chamar deactivate por padrão
-    try {
-      await api.post(`/api/users/${id}/deactivate`)
-      alert('Usuário desativado (se estava ativo).')
-    } catch {}
+  async function saveUser(u: UserRow){
+    await api.put(`/api/users/${u.id}`, { name: u.name, email: u.email })
   }
+  async function deleteUser(id:number){ if (confirm('Excluir usuário?')) { await api.delete(`/api/users/${id}`); const us=await api.get('/api/users'); setUsers(us.data) } }
+  async function changeRole(id:number, role:string){ await api.post(`/api/users/${id}/role`, undefined, { params: { role } }); const us=await api.get('/api/users'); setUsers(us.data) }
+  async function toggleAvailability(b:Book){ await api.patch(`/api/books/${b.id}/availability`, undefined, { params: { available: !b.available } }); const bs=await api.get('/api/books'); setBooks(bs.data) }
+  async function saveBook(b:Book){ await api.put(`/api/books/${b.id}`, { title: b.title, author: b.author, genre: b.genre }); const bs=await api.get('/api/books'); setBooks(bs.data) }
+  async function addBook(e: React.FormEvent<HTMLFormElement>){ e.preventDefault(); const fd=new FormData(e.currentTarget); await api.post('/api/books', { title: fd.get('title'), author: fd.get('author'), genre: fd.get('genre') }); const bs=await api.get('/api/books'); setBooks(bs.data); e.currentTarget.reset() }
+  async function deleteBook(id:number){ if (confirm('Excluir livro?')) { await api.delete(`/api/books/${id}`); const bs=await api.get('/api/books'); setBooks(bs.data) } }
+  async function returnLoan(id:number){ const today=new Date().toISOString().slice(0,10); await api.patch(`/api/loans/${id}/return`, { returnDate: today }); const ls=await api.get('/api/loans'); setLoans(ls.data) }
+  async function deleteLoan(id:number){ if (confirm('Excluir empréstimo?')) { await api.delete(`/api/loans/${id}`); const ls=await api.get('/api/loans'); setLoans(ls.data) } }
 
   if (loading) return <div className="container"><p style={{color:'#fff'}}>Carregando...</p></div>
   if (!me || me.role!=='ADMIN') return <div className="container"><p style={{color:'#fff'}}>Acesso restrito.</p></div>
@@ -58,25 +65,105 @@ export default function AdminDashboard(){
       </div>
 
       <div className="spacer" />
-      <div className="card" style={{padding:16}}>
-        <h3>Usuários</h3>
-        <table style={{width:'100%', borderCollapse:'collapse'}}>
-          <thead><tr><th style={{textAlign:'left'}}>Nome</th><th>Email</th><th>Role</th><th>Ações</th></tr></thead>
-          <tbody>
-          {users.map(u=> (
-            <tr key={u.id}>
-              <td style={{padding:8}}>{u.name}</td>
-              <td style={{textAlign:'center'}}>{u.email}</td>
-              <td style={{textAlign:'center'}}>{u.role}</td>
-              <td style={{textAlign:'center'}}>
-                <button className="btn secondary" onClick={()=>toggleUser(u.id)}>Ativar/Desativar</button>
-              </td>
-            </tr>
-          ))}
-          </tbody>
-        </table>
+      <div className="card" style={{padding:12}}>
+        <div className="actions" style={{gap:8}}>
+          <button className="btn" onClick={()=>setTab('users')}>Usuários</button>
+          <button className="btn" onClick={()=>setTab('books')}>Livros</button>
+          <button className="btn" onClick={()=>setTab('loans')}>Empréstimos</button>
+          <button className="btn" onClick={()=>setTab('reports')}>Relatórios</button>
+        </div>
       </div>
+
+      {tab==='users' && (
+        <div className="card" style={{padding:16}}>
+          <h3>Usuários</h3>
+          <table style={{width:'100%', borderCollapse:'collapse'}}>
+            <thead><tr><th style={{textAlign:'left'}}>Nome</th><th>Email</th><th>Role</th><th>Ações</th></tr></thead>
+            <tbody>
+            {users.map(u=> (
+              <tr key={u.id}>
+                <td style={{padding:8}}><input defaultValue={u.name} onChange={e=>u.name=e.target.value} /></td>
+                <td style={{textAlign:'center'}}><input defaultValue={u.email} onChange={e=>u.email=e.target.value} /></td>
+                <td style={{textAlign:'center'}}>
+                  <select defaultValue={u.role} onChange={e=>changeRole(u.id, e.target.value)}>
+                    <option>READER</option><option>AUTHOR</option><option>ADMIN</option>
+                  </select>
+                </td>
+                <td style={{textAlign:'center'}}>
+                  <button className="btn" onClick={()=>saveUser(u)}>Salvar</button>
+                  <button className="btn secondary" onClick={()=>deleteUser(u.id)}>Excluir</button>
+                </td>
+              </tr>
+            ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab==='books' && (
+        <div className="card" style={{padding:16}}>
+          <h3>Livros</h3>
+          <form onSubmit={addBook} className="actions" style={{gap:8, marginBottom:8}}>
+            <input name="title" placeholder="Título" required />
+            <input name="author" placeholder="Autor" required />
+            <input name="genre" placeholder="Gênero" />
+            <button className="btn" type="submit">Adicionar</button>
+          </form>
+          <table style={{width:'100%', borderCollapse:'collapse'}}>
+            <thead><tr><th>Título</th><th>Autor</th><th>Gênero</th><th>Disp.</th><th>Ações</th></tr></thead>
+            <tbody>
+              {books.map(b => (
+                <tr key={b.id}>
+                  <td><input defaultValue={b.title} onChange={e=>b.title=e.target.value} /></td>
+                  <td><input defaultValue={b.author} onChange={e=>b.author=e.target.value} /></td>
+                  <td><input defaultValue={b.genre||''} onChange={e=>b.genre=e.target.value} /></td>
+                  <td style={{textAlign:'center'}}>{b.available? 'Sim':'Não'}</td>
+                  <td className="actions" style={{gap:8, justifyContent:'center'}}>
+                    <button className="btn" onClick={()=>saveBook(b)}>Salvar</button>
+                    <button className="btn secondary" onClick={()=>toggleAvailability(b)}>{b.available?'Indisp.':'Disp.'}</button>
+                    <button className="btn secondary" onClick={()=>deleteBook(b.id)}>Excluir</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab==='loans' && (
+        <div className="card" style={{padding:16}}>
+          <h3>Empréstimos</h3>
+          <table style={{width:'100%', borderCollapse:'collapse'}}>
+            <thead><tr><th>Livro</th><th>Usuário</th><th>Empréstimo</th><th>Vencimento</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>
+              {loans.map(l => (
+                <tr key={l.id}>
+                  <td>{l.bookTitle}</td>
+                  <td>{l.userName}</td>
+                  <td>{new Date(l.loanDate).toLocaleDateString('pt-BR')}</td>
+                  <td>{new Date(l.dueDate).toLocaleDateString('pt-BR')}</td>
+                  <td>{l.returned? 'Devolvido' : 'Em andamento'}</td>
+                  <td className="actions" style={{gap:8, justifyContent:'center'}}>
+                    {!l.returned && <button className="btn" onClick={()=>returnLoan(l.id)}>Devolver</button>}
+                    <button className="btn secondary" onClick={()=>deleteLoan(l.id)}>Excluir</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab==='reports' && (
+        <div className="card" style={{padding:16}}>
+          <h3>Relatórios</h3>
+          <p>Total de usuários: {users.length}</p>
+          <p>Total de livros: {books.length}</p>
+          <p>Total de empréstimos: {loans.length}</p>
+          <p>Em andamento: {loans.filter(l=>!l.returned).length}</p>
+          <p>Em atraso: {loans.filter(l=>!l.returned && new Date() > new Date(l.dueDate)).length}</p>
+        </div>
+      )}
     </div>
   )
 }
-

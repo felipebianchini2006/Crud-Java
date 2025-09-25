@@ -5,6 +5,8 @@ import { api, img } from '@/api/client'
 export default function AuthorDashboard(){
   const [me, setMe] = useState<Me|null>(null)
   const [books, setBooks] = useState<any[]>([])
+  const [editing, setEditing] = useState<any|null>(null)
+  const [history, setHistory] = useState<Record<number, any[]>>({})
   const [loading, setLoading] = useState(true)
 
   async function load(){
@@ -39,6 +41,31 @@ export default function AuthorDashboard(){
     await load()
   }
 
+  async function toggleAvailability(id:number, available:boolean){
+    await api.patch(`/api/books/${id}/availability`, undefined, { params: { available: !available }})
+    await load()
+  }
+
+  async function removeBook(id:number){
+    if (!confirm('Excluir este livro?')) return
+    await api.delete(`/api/books/${id}`)
+    await load()
+  }
+
+  async function saveEdit(e: React.FormEvent<HTMLFormElement>){
+    e.preventDefault(); if (!editing) return
+    const fd = new FormData(e.currentTarget)
+    await api.put(`/api/books/${editing.id}`, {
+      title: fd.get('title'), author: fd.get('author'), genre: fd.get('genre')
+    })
+    setEditing(null); await load()
+  }
+
+  async function loadHistory(bookId:number){
+    const { data } = await api.get(`/api/loans/book/${bookId}`)
+    setHistory(h => ({...h, [bookId]: data}))
+  }
+
   if (loading) return <div className="container"><p style={{color:'#fff'}}>Carregando...</p></div>
   if (!me) return null
 
@@ -68,11 +95,41 @@ export default function AuthorDashboard(){
                   <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadCover(b.id, f) }} />
                 </label>
               </div>
+              <div className="actions" style={{gap:8, marginTop:8}}>
+                <button className="btn" onClick={()=>setEditing(b)}>Editar</button>
+                <button className="btn secondary" onClick={()=>toggleAvailability(b.id, b.available)}>{b.available?'Marcar indisponível':'Marcar disponível'}</button>
+                <button className="btn secondary" onClick={()=>loadHistory(b.id)}>Histórico</button>
+                <button className="btn secondary" onClick={()=>removeBook(b.id)}>Excluir</button>
+              </div>
+              {history[b.id] && (
+                <div style={{marginTop:8}}>
+                  <strong>Empréstimos:</strong>
+                  <ul>
+                    {history[b.id].map((l:any)=> (
+                      <li key={l.id}>{l.userName} — {new Date(l.loanDate).toLocaleDateString('pt-BR')} → {new Date(l.dueDate).toLocaleDateString('pt-BR')} {l.returned? '(devolvido)':''}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      {editing && (
+        <div className="card" style={{padding:16, marginTop:16}}>
+          <h3>Editar Livro</h3>
+          <form onSubmit={saveEdit} className="grid" style={{gridTemplateColumns:'1fr 1fr 1fr auto', gap:12}}>
+            <input name="title" defaultValue={editing.title} required />
+            <input name="author" defaultValue={editing.author} required />
+            <input name="genre" defaultValue={editing.genre||''} />
+            <button className="btn" type="submit">Salvar</button>
+          </form>
+          <div className="actions" style={{marginTop:8}}>
+            <button className="btn secondary" onClick={()=>setEditing(null)}>Cancelar</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-

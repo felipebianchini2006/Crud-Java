@@ -18,6 +18,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping
     public List<UserResponse> findAll() {
         return userService.findAll().stream()
@@ -60,6 +63,14 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/role")
+    public ResponseEntity<Void> changeRole(@PathVariable Long id, @RequestParam("role") UserRole role) {
+        User user = userService.findById(id);
+        user.setRole(role);
+        userRepository.save(user);
         return ResponseEntity.noContent().build();
     }
 
