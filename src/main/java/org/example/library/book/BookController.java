@@ -30,6 +30,7 @@ public class BookController {
     }
 
     @PostMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','AUTHOR')")
     public ResponseEntity<BookResponse> create(@Valid @RequestBody BookRequest request) {
         BookResponse response = service.create(request);
         return ResponseEntity
@@ -48,17 +49,20 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','AUTHOR')")
     public BookResponse update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         return service.update(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','AUTHOR')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/availability")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','AUTHOR')")
     public ResponseEntity<Void> changeAvailability(@PathVariable Long id, @RequestParam boolean available) {
         service.setAvailability(id, available);
         return ResponseEntity.noContent().build();
@@ -66,6 +70,7 @@ public class BookController {
 
     // Upload de capa do livro
     @PostMapping("/{id}/cover")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','AUTHOR')")
     public BookResponse uploadCover(@PathVariable Long id,
                                     @RequestParam("file") MultipartFile file) throws java.io.IOException {
         service.uploadCoverImage(id, file);
@@ -74,10 +79,33 @@ public class BookController {
 
     // Livros do autor logado
     @GetMapping("/mine")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN','AUTHOR')")
     public List<BookResponse> myBooks(Authentication authentication) {
         CustomUserDetailsService.CustomUserPrincipal principal =
                 (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
         User user = principal.getUser();
         return service.findByAuthorUser(user).stream().map(BookResponse::from).toList();
+    }
+
+    // Paginated endpoint for SPA
+    @GetMapping("/page")
+    public org.springframework.data.domain.Page<BookResponse> page(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String author) {
+        var pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<org.example.library.book.Book> books;
+        if (search != null && !search.isBlank()) {
+            books = service.searchBooks(search, pageable);
+        } else if (genre != null && !genre.isBlank()) {
+            books = service.findByGenre(genre, pageable);
+        } else if (author != null && !author.isBlank()) {
+            books = service.findByAuthor(author, pageable);
+        } else {
+            books = service.findAllPaginated(pageable);
+        }
+        return books.map(BookResponse::from);
     }
 }

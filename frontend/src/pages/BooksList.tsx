@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getBooks, Book } from '@/api/books'
+import { getBooksPage, Book, Page } from '@/api/books'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api, img } from '@/api/client'
 import { getMe, Me } from '@/api/me'
 
 export default function BooksList(){
   const [params, setParams] = useSearchParams()
-  const [all, setAll] = useState<Book[]>([])
+  const [pageData, setPageData] = useState<Page<Book>>({ content: [], totalPages: 1, totalElements: 0, number: 0 })
   const [loading, setLoading] = useState(true)
   const [me, setMe] = useState<Me | null>(null)
 
@@ -15,23 +15,18 @@ export default function BooksList(){
     getMe().then(setMe)
   },[])
 
-  const search = params.get('search')?.toLowerCase() || ''
-  const genre = params.get('genre')?.toLowerCase() || ''
-  const author = params.get('author')?.toLowerCase() || ''
-  const page = parseInt(params.get('page')||'1',10)
-  const size = 12
+  const search = params.get('search') || ''
+  const genre = params.get('genre') || ''
+  const author = params.get('author') || ''
+  const current = parseInt(params.get('page')||'1',10)
+  const size = parseInt(params.get('size')||'12',10)
 
-  const filtered = useMemo(()=>{
-    return all.filter(b =>
-      (!search || b.title.toLowerCase().includes(search) || b.author.toLowerCase().includes(search)) &&
-      (!genre || (b.genre||'').toLowerCase().includes(genre)) &&
-      (!author || b.author.toLowerCase().includes(author))
-    )
-  },[all, search, genre, author])
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length/size))
-  const current = Math.min(Math.max(1,page), totalPages)
-  const pageItems = filtered.slice((current-1)*size, current*size)
+  useEffect(()=>{
+    setLoading(true)
+    getBooksPage({ page: current-1, size, search, genre, author })
+      .then(setPageData)
+      .finally(()=>setLoading(false))
+  }, [current, size, search, genre, author])
 
   function submitFilters(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault()
@@ -75,13 +70,13 @@ export default function BooksList(){
       </div>
 
       {loading ? <p style={{color:'#fff'}}>Carregando...</p> : (
-        filtered.length === 0 ? (
+        pageData.content.length === 0 ? (
           <div className="card" style={{padding:24}}>
             <p>Nenhum livro encontrado.</p>
           </div>
         ) : (
           <div className="grid cards">
-            {pageItems.map(b => (
+            {pageData.content.map(b => (
               <div className="card" key={b.id}>
                 <img className="cover" src={img(b.coverImage)} alt={b.title} />
                 <div className="body">
@@ -116,7 +111,7 @@ export default function BooksList(){
       )}
 
       <div className="spacer" />
-      <Pagination total={totalPages} current={current} onPage={(p)=>{
+      <Pagination total={pageData.totalPages} current={pageData.number+1} onPage={(p)=>{
         const next = new URLSearchParams(params)
         next.set('page', String(p))
         setParams(next)

@@ -32,6 +32,7 @@ public class LoanController {
     }
 
     @GetMapping
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public List<LoanResponse> findAll() {
         return service.findAll();
     }
@@ -59,6 +60,7 @@ public class LoanController {
     }
 
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

@@ -21,3 +21,9 @@ export async function getBook(id: number): Promise<Book> {
   return data as Book
 }
 
+export interface Page<T> { content: T[]; totalPages: number; totalElements: number; number: number }
+
+export async function getBooksPage(params: { page?: number; size?: number; search?: string; genre?: string; author?: string }): Promise<Page<Book>> {
+  const { data } = await api.get<Page<Book>>('/api/books/page', { params })
+  return data
+}

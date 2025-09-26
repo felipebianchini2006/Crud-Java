@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getMe, Me } from '@/api/me'
 import { api } from '@/api/client'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 interface UserRow { id:number; name:string; email:string; role:string; profileImage?:string }
 
@@ -34,14 +35,16 @@ export default function AdminDashboard(){
   async function saveUser(u: UserRow){
     await api.put(`/api/users/${u.id}`, { name: u.name, email: u.email })
   }
-  async function deleteUser(id:number){ if (confirm('Excluir usuário?')) { await api.delete(`/api/users/${id}`); const us=await api.get('/api/users'); setUsers(us.data) } }
+  const [confirm, setConfirm] = useState<{open:boolean; title:string; msg:string; action: ()=>void}>({open:false, title:'', msg:'', action: ()=>{}})
+  function ask(title:string, msg:string, action:()=>void){ setConfirm({open:true, title, msg, action}) }
+  async function deleteUser(id:number){ ask('Excluir usuário', 'Tem certeza que deseja excluir?', async ()=>{ await api.delete(`/api/users/${id}`); const us=await api.get('/api/users'); setUsers(us.data) }) }
   async function changeRole(id:number, role:string){ await api.post(`/api/users/${id}/role`, undefined, { params: { role } }); const us=await api.get('/api/users'); setUsers(us.data) }
   async function toggleAvailability(b:Book){ await api.patch(`/api/books/${b.id}/availability`, undefined, { params: { available: !b.available } }); const bs=await api.get('/api/books'); setBooks(bs.data) }
   async function saveBook(b:Book){ await api.put(`/api/books/${b.id}`, { title: b.title, author: b.author, genre: b.genre }); const bs=await api.get('/api/books'); setBooks(bs.data) }
   async function addBook(e: React.FormEvent<HTMLFormElement>){ e.preventDefault(); const fd=new FormData(e.currentTarget); await api.post('/api/books', { title: fd.get('title'), author: fd.get('author'), genre: fd.get('genre') }); const bs=await api.get('/api/books'); setBooks(bs.data); e.currentTarget.reset() }
-  async function deleteBook(id:number){ if (confirm('Excluir livro?')) { await api.delete(`/api/books/${id}`); const bs=await api.get('/api/books'); setBooks(bs.data) } }
+  async function deleteBook(id:number){ ask('Excluir livro', 'Tem certeza que deseja excluir?', async ()=>{ await api.delete(`/api/books/${id}`); const bs=await api.get('/api/books'); setBooks(bs.data) }) }
   async function returnLoan(id:number){ const today=new Date().toISOString().slice(0,10); await api.patch(`/api/loans/${id}/return`, { returnDate: today }); const ls=await api.get('/api/loans'); setLoans(ls.data) }
-  async function deleteLoan(id:number){ if (confirm('Excluir empréstimo?')) { await api.delete(`/api/loans/${id}`); const ls=await api.get('/api/loans'); setLoans(ls.data) } }
+  async function deleteLoan(id:number){ ask('Excluir empréstimo', 'Tem certeza que deseja excluir?', async ()=>{ await api.delete(`/api/loans/${id}`); const ls=await api.get('/api/loans'); setLoans(ls.data) }) }
 
   if (loading) return <div className="container"><p style={{color:'#fff'}}>Carregando...</p></div>
   if (!me || me.role!=='ADMIN') return <div className="container"><p style={{color:'#fff'}}>Acesso restrito.</p></div>
@@ -164,6 +167,7 @@ export default function AdminDashboard(){
           <p>Em atraso: {loans.filter(l=>!l.returned && new Date() > new Date(l.dueDate)).length}</p>
         </div>
       )}
+      <ConfirmDialog open={confirm.open} title={confirm.title} message={confirm.msg} onClose={()=>setConfirm({...confirm, open:false})} onConfirm={confirm.action} />
     </div>
   )
 }

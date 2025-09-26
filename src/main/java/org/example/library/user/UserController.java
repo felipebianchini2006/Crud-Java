@@ -61,12 +61,14 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/role")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> changeRole(@PathVariable Long id, @RequestParam("role") UserRole role) {
         User user = userService.findById(id);
         user.setRole(role);
@@ -76,6 +78,7 @@ public class UserController {
 
     // Upload de foto de perfil
     @PostMapping("/{id}/upload-image")
+    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
     public UserResponse uploadImage(@PathVariable Long id,
                                     @RequestParam("file") MultipartFile file) throws java.io.IOException {
         String url = userService.uploadProfileImage(id, file);
@@ -85,12 +88,14 @@ public class UserController {
 
     // Ativar/Desativar usuário (admin)
     @PostMapping("/{id}/activate")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> activate(@PathVariable Long id) {
         userService.activate(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/deactivate")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivate(@PathVariable Long id) {
         userService.delete(id);
         return ResponseEntity.noContent().build();

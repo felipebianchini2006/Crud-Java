@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getMe, Me } from '@/api/me'
 import { api, img } from '@/api/client'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 export default function AuthorDashboard(){
   const [me, setMe] = useState<Me|null>(null)
@@ -46,11 +47,9 @@ export default function AuthorDashboard(){
     await load()
   }
 
-  async function removeBook(id:number){
-    if (!confirm('Excluir este livro?')) return
-    await api.delete(`/api/books/${id}`)
-    await load()
-  }
+  const [confirm, setConfirm] = useState<{open:boolean; title:string; msg:string; action: ()=>void}>({open:false, title:'', msg:'', action: ()=>{}})
+  function ask(title:string, msg:string, action:()=>void){ setConfirm({open:true, title, msg, action}) }
+  async function removeBook(id:number){ ask('Excluir livro', 'Tem certeza?', async ()=>{ await api.delete(`/api/books/${id}`); await load() }) }
 
   async function saveEdit(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault(); if (!editing) return
@@ -130,6 +129,7 @@ export default function AuthorDashboard(){
           </div>
         </div>
       )}
+      <ConfirmDialog open={confirm.open} title={confirm.title} message={confirm.msg} onClose={()=>setConfirm({...confirm, open:false})} onConfirm={confirm.action} />
     </div>
   )
 }
