@@ -18,6 +18,6 @@ export async function getMe(): Promise<Me | null> {
 }
 
 export async function logout() {
-  await api.post('/logout')
+  await api.post('/api/logout')
 }
 

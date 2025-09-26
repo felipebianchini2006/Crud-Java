@@ -86,6 +86,7 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                 .requestMatchers("/static/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/app/**", "/app").permitAll()
                 .requestMatchers("/uploads/**").permitAll()
                 
                 // API Auth endpoints
