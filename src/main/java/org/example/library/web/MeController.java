@@ -16,20 +16,30 @@ public class MeController {
 
     @GetMapping("/me")
     public ResponseEntity<?> me(Authentication authentication) {
+        // Se não há autenticação, retorna null indicando que não há usuário logado
         if (authentication == null || !authentication.isAuthenticated() ||
                 "anonymousUser".equals(authentication.getName())) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.ok(Map.of("user", (Object) null));
         }
-        CustomUserDetailsService.CustomUserPrincipal principal =
-                (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
-        User u = principal.getUser();
-        return ResponseEntity.ok(Map.of(
-                "id", u.getId(),
-                "name", u.getName(),
-                "email", u.getEmail(),
-                "role", u.getRole(),
-                "profileImage", u.getProfileImage()
-        ));
+        
+        // Se há autenticação, retorna os dados do usuário
+        try {
+            CustomUserDetailsService.CustomUserPrincipal principal =
+                    (CustomUserDetailsService.CustomUserPrincipal) authentication.getPrincipal();
+            User u = principal.getUser();
+            return ResponseEntity.ok(Map.of(
+                    "user", Map.of(
+                            "id", u.getId(),
+                            "name", u.getName(),
+                            "email", u.getEmail(),
+                            "role", u.getRole(),
+                            "profileImage", u.getProfileImage()
+                    )
+            ));
+        } catch (Exception e) {
+            // Em caso de erro ao obter dados do usuário, retorna que não há usuário
+            return ResponseEntity.ok(Map.of("user", (Object) null));
+        }
     }
 }
 

@@ -91,6 +91,8 @@ public class SecurityConfig {
                 
                 // API Auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/login", "/api/logout").permitAll()
+                .requestMatchers("/api/me").permitAll()
                 
                 // API Public endpoints
                 .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
