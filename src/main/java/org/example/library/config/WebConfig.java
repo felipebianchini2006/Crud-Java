@@ -2,7 +2,6 @@ package org.example.library.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -29,10 +28,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/app/");
     }
 
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        // Forward SPA routes (any path after /app) to SPA index.html
-        registry.addViewController("/app").setViewName("forward:/static/app/index.html");
-        registry.addViewController("/app/{*path}").setViewName("forward:/static/app/index.html");
-    }
 }
