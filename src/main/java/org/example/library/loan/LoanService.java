@@ -1,6 +1,6 @@
 package org.example.library.loan;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.example.library.book.Book;
 import org.example.library.book.BookRepository;
@@ -40,8 +40,9 @@ public class LoanService {
                 .ifPresent(activeLoan -> {
                     throw new BusinessException("Este livro já está emprestado.");
                 });
-        LocalDate loanDate = request.loanDate();
-        Loan loan = new Loan(book, user, loanDate, request.dueDate());
+        LocalDateTime loanDateTime = request.loanDate().atStartOfDay();
+        LocalDateTime dueDateTime = request.dueDate().atStartOfDay();
+        Loan loan = new Loan(user, book, loanDateTime, dueDateTime);
         book.setAvailable(false);
         return LoanResponse.from(loanRepository.save(loan));
     }
@@ -81,10 +82,11 @@ public class LoanService {
         if (loan.isReturned()) {
             throw new BusinessException("Empréstimo já devolvido.");
         }
-        if (request.returnDate().isBefore(loan.getLoanDate())) {
+        LocalDateTime returnDateTime = request.returnDate().atStartOfDay();
+        if (returnDateTime.isBefore(loan.getLoanDate())) {
             throw new BusinessException("Data de devolução não pode ser anterior à data do empréstimo.");
         }
-        loan.setReturnDate(request.returnDate());
+        loan.setReturnDate(returnDateTime);
         loan.getBook().setAvailable(true);
         return LoanResponse.from(loan);
     }
@@ -105,7 +107,7 @@ public class LoanService {
             throw new BusinessException("Empréstimo já devolvido.");
         }
         
-        loan.setReturnDate(LocalDate.now());
+        loan.setReturnDate(LocalDateTime.now());
         loan.getBook().setAvailable(true);
         loanRepository.save(loan);
     }

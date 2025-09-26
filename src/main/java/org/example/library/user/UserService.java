@@ -3,6 +3,9 @@ package org.example.library.user;
 import org.example.library.common.BusinessException;
 import org.example.library.common.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +20,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class UserService {
+public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -27,8 +30,20 @@ public class UserService {
 
     private final String uploadDir = "uploads/profiles/";
 
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
+        
+        if (!user.getIsActive()) {
+            throw new UsernameNotFoundException("Usuário inativo: " + username);
+        }
+        
+        return user;
+    }
+
     public List<User> findAll() {
-        return userRepository.findByActiveTrue();
+        return userRepository.findByIsActiveTrue();
     }
 
     public User findById(Long id) {
@@ -42,7 +57,7 @@ public class UserService {
     }
 
     public List<User> findByRole(UserRole role) {
-        return userRepository.findByRoleAndActiveTrue(role);
+        return userRepository.findByRoleAndIsActiveTrue(role);
     }
 
     public User create(UserRequest request) {
@@ -109,22 +124,22 @@ public class UserService {
         Files.copy(file.getInputStream(), filePath);
 
         // Update user profile image
-        user.setProfileImage("/static/profiles/" + filename);
+        user.setProfileImageUrl("/static/profiles/" + filename);
         userRepository.save(user);
 
-        return user.getProfileImage();
+        return user.getProfileImageUrl();
     }
 
     public void delete(Long id) {
         User user = findById(id);
-        user.setActive(false);
+        user.setIsActive(false);
         userRepository.save(user);
     }
 
     public void activate(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
-        user.setActive(true);
+        user.setIsActive(true);
         userRepository.save(user);
     }
 }

@@ -1,6 +1,7 @@
 package org.example.library.loan;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record LoanResponse(
         Long id,
@@ -20,10 +21,14 @@ public record LoanResponse(
                 loan.getBook().getTitle(),
                 loan.getUser().getId(),
                 loan.getUser().getName(),
-                loan.getLoanDate(),
-                loan.getDueDate(),
-                loan.getReturnDate(),
+                toLocalDate(loan.getLoanDate()),
+                toLocalDate(loan.getDueDate()),
+                toLocalDate(loan.getReturnDate()),
                 loan.isReturned()
         );
+    }
+    
+    private static LocalDate toLocalDate(LocalDateTime dateTime) {
+        return dateTime != null ? dateTime.toLocalDate() : null;
     }
 }

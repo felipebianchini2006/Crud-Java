@@ -114,7 +114,7 @@ public class BookService {
 
     @Transactional(readOnly = true)
     public List<Book> findByAuthorUser(User authorUser) {
-        return repository.findByAuthorUser(authorUser);
+        return repository.findByCreatedBy(authorUser);
     }
 
     @Transactional

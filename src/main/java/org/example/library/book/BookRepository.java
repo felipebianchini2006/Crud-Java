@@ -18,7 +18,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     
     Page<Book> findByAuthorContainingIgnoreCase(String author, Pageable pageable);
     
-    List<Book> findByAuthorUser(User authorUser);
+    List<Book> findByCreatedBy(User createdBy);
     
     @Query("SELECT DISTINCT b.genre FROM Book b WHERE b.genre IS NOT NULL ORDER BY b.genre")
     List<String> findDistinctGenres();
